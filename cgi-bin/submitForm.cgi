@@ -48,7 +48,7 @@ if not os.path.exists(today_folder):
 team = form['TeamPresenting'].value
 evaluator=form['Evaluator'].value
 
-filename=today_folder+team+"_"+evaluator.replace(" ", "_")+"_"+today
+filename=today_folder+team+"_"+evaluator.replace(" ", "_")+"_"+today+".tex"
 
 # open the latex template file
 with open(latexTemplate,"r") as templateFile:
