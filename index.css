@@ -1,0 +1,14 @@
+.container * {font-size:20px!important;}
+body {
+	font-size:20px;
+    	background-color: lightblue;
+	color: chocolate;
+}
+input { font-size: 20px; }
+select {
+	font-size: 20px;
+	border-color:#999;
+}
+button {
+	font-size: 20px;
+}
