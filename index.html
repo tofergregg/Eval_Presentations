@@ -6,8 +6,13 @@
 <link rel="stylesheet" type="text/css" href="index.css">
 </head>
 <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js" ></script> -->
-<script src="jquery.min.js" ></script>
+<script src="jquery.min.js"></script>
+<script src="jquery-ui.js"></script>
 <script type="text/javascript">
+$(function() {
+    $( "#datepicker" ).datepicker();
+  });
+
 function init(){
 	init.scoreTypes = ["content",
 			"preparedness",
@@ -68,22 +73,60 @@ function create_scoring(){
 function submitForm(){
 	formInfo = {}
 	var elt = document.getElementById("TeamPresenting");
-	formInfo['TeamPresenting']=elt.options[elt.selectedIndex].text;
-	formInfo['Evaluator']=(document.getElementById("name")).innerHTML;
-	for (var i=0;i<init.scoreTypes.length;i++) {
-		var elt = document.getElementById(init.scoreTypes[i]+"_scoreText");
-		formInfo[init.scoreTypes[i]+"_score"]=elt.options[elt.selectedIndex].text;
+	var teamName = elt.options[elt.selectedIndex].text;
+	teamName = teamName.replace(/\s+/g,'_');
+	console.log(teamName);
+	var answer = confirm ("Are you sure you want to submit the evaluation for "+teamName+"?");
+	if (answer) {
+		formInfo['TeamPresenting']=teamName;
+		formInfo['Evaluator']=(document.getElementById("name")).innerHTML;
+		for (var i=0;i<init.scoreTypes.length;i++) {
+			var elt = document.getElementById(init.scoreTypes[i]+"_scoreText");
+			formInfo[init.scoreTypes[i]+"_score"]=elt.options[elt.selectedIndex].text;
 		
-		elt = document.getElementById(init.scoreTypes[i]+"_commentText");
-		if (elt.value=="") elt.value = "(no comment)"
-		formInfo[init.scoreTypes[i]+"_comment"]=elt.value;
+			elt = document.getElementById(init.scoreTypes[i]+"_commentText");
+			if(elt.value.trim() == '') elt.value = '(No Comment)'
+			formInfo[init.scoreTypes[i]+"_comment"]=elt.value;
+		}
+		console.log(formInfo);
+		$.post("cgi-bin/submitForm.cgi", formInfo,
+			function (data) {
+				console.log(data);
+				if (data.indexOf("Submitted")!=-1) {
+					alert("Submitted evaluation for "+teamName+"!");
+				}
+				else {
+					alert("Error submitting form for "+teamName+"!");
+				}
+			});
 	}
-	console.log(formInfo);
-	$.post("cgi-bin/submitForm.cgi", formInfo,
-		function (data) {
-			console.log(data);
-		});
-	//alert("Submitted!");
+	else {
+		alert("Form not submitted!");
+	}
+}
+
+function downloadTeamEvals(){
+	elt = document.getElementById("datepicker");
+	dateText = elt.value;
+	if (dateText == "") {
+		alert("Please choose a date!");
+		return;
+	}
+	console.log(dateText);
+	$("#eval_date").val(dateText);
+	$("#collateScores").submit();
+}
+function resetForm(){
+	var answer = confirm ("Are you sure you want to reset the form?")
+	if (answer) {
+		console.log("Resetting form.");
+		for (var i=0;i<init.scoreTypes.length;i++) {
+			//var combo = $("<select></select>").attr("id", init.scoreTypes[i]+"_scoreText").attr("name", s);;
+			$("[id="+init.scoreTypes[i]+"_scoreText]").val(1);
+			$("[id="+init.scoreTypes[i]+"_commentText]").val("");
+
+		}
+	}
 }
 </script>
 <body onload="init()">
@@ -131,8 +174,30 @@ function submitForm(){
 
 <p>
 <button type="button" onclick="submitForm()">Submit Evaluation!</button>
+<button type="button" onclick="resetForm()">Reset Form</button>
+<p>
+<button type="button" onclick="downloadTeamEvals()">Download my team's evaluations</button>
+Date: <input type="text" id="datepicker"></p>
+<p>Grading Rubric:
+<table border="1">
+<tr><td>Category</td><td>5</td><td>4</td><td>3</td><td>2</td><td>1</td></tr>
+<tr><td>Content</td><td>Shows expertise</td><td>Shows full understanding</td><td>Show good understanding</td><td>Shows understanding of parts of the topic</td><td>Does not appear to understand the topic</td></tr>
+<tr><td>Preparedness</td><td>Well-prepared; obviously rehearsed</td><td>Very prepared, but some gaps</td><td>Seems prepared but more rehearsals needed</td><td>Somewhat prepared</td><td>Unprepared</td></tr>
+<tr><td>Enthusiasm</td><td>Great facial expressions & body language, passion in topic evident</td><td>Great facial expressions & body language, engaging in topic</td><td>Facial expressions & body language generate strong interest</td><td>Facial expressions & body language did not generate strong interest</td><td>Facial expressions & body language did nothing</td></tr>
+<tr><td>Vocabulary</td><td>Used appropriate vocabulary for audience; explained all technical terms</td><td>Used appropriate vocabulary for audience; left some technical terms unclear</td><td>Used appropriate vocabulary for audience; some technical terms explained</td><td>Used appropriate vocabulary for audience; technical terms defined at the bare minimum</td><td>Used appropriate vocabulary for audience; did not define any technical terms</td></tr>
+<tr><td>Speaks Clearly</td><td>Distinct and clear and understood</td><td>Clear and understood, mis-pronunciation</td><td>Clear and understood, with some quiet gaps</td><td>Understood, with some quiet gaps & umm’s</td><td>Understood, with quiet gaps & umm’s</td></tr>
+<tr><td>Organization</td><td>Well thought out and presented</td><td>Logical, followed, and understood</td><td>Followed with reservations</td><td>Followed, but uncomfortable</td><td>Unable to follow</td></tr>
+<tr><td>Time Management</td><td>Started & finished on time; self managed clock</td><td>Started & finished on time; moderator managed clock</td><td>Started & finished on time; with urging</td><td>Started on time, but no time for Q&A</td><td>Started on time, but did not finish</td></tr>
+<tr><td>Realistic / Honest Status</td><td>Blatantly honest & realistic project assessment</td><td>Honest & realistic project assessment of most items</td><td>Honest & realistic project assessment less than half the items</td><td>Borderline honest & realistic project assessment</td><td>Dishonest & unrealistic project assessment</td></tr>
+<tr><td>Detail</td><td>Excellent balance of overview and detail </td><td>Very good balance of overview and detail</td><td>Good balance of overview and detail</td><td>Too much time in either overview or detail</td><td>No balance</td></tr>
+<tr><td>Audience Engagement</td><td>Undivided audience attention</td><td>Audience engaged</td><td>Audience interested</td><td>Audience somewhat engaged</td><td>Audience not engaged at all</td></tr>
+</table>
 
 </div>
+<form style="display: hidden;" action="cgi-bin/collateScores.cgi" method="POST" id="collateScores">
+<input type="hidden" id="eval_date" name="eval_date" value=""/>
+</form>
+
 </body>
 </html>
 
